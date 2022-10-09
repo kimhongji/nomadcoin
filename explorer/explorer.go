@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	port string = ":8080"
+	port        string = ":8080"
 	templateDir string = "explorer/templates/"
 )
 
