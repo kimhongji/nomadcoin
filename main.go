@@ -1,9 +1,7 @@
 package main
 
-import (
-	"github.com/kimhongji/nomadcoin/explorer"
-)
+import "github.com/kimhongji/nomadcoin/cli"
 
 func main() {
-	explorer.Start()
+	cli.Start()
 }
