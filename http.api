@@ -1,0 +1,6 @@
+curl http://localhost:8000
+
+curl -X POST -H 'Content-Type: application/json' 'http://localhost:8000/blocks' -d '{"message" : "what.."}'
+
+
+ curl localhost:8000/blocks | jq
