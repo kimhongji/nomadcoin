@@ -15,7 +15,7 @@ type mempool struct {
 	Txs []*Tx
 }
 
-var Mempool *mempool = &mempool{} //memory 에 올라와 있음 , mempool을 위한 데이터 베이스도 필요 없음
+var Mempool = &mempool{} //memory 에 올라와 있음 , mempool을 위한 데이터 베이스도 필요 없음
 
 type Tx struct {
 	Id        string   `json:"id"`
@@ -100,4 +100,12 @@ func (m *mempool) AddTx(to string, amount int) error {
 	}
 	m.Txs = append(m.Txs, tx)
 	return nil
+}
+
+func (m *mempool) TxToConfirm() []*Tx {
+	coinbase := makeCoinbaseTx("hayz") //block 을 채굴했을 때만
+	txs := m.Txs
+	txs = append(txs, coinbase)
+	m.Txs = nil
+	return txs
 }

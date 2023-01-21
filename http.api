@@ -15,4 +15,4 @@ go run main.go run -mode=rest
 http://localhost:4000/ // web 으로 접속하면 사용 가능한 api list 보임
 
 
-curl -X POST -H 'Content-Type: application/json' 'http://localhost:4000/transactions' -d '{"to" : "lynn", "amount": 15 }'
+curl -X POST -H 'Content-Type: application/json' 'http://localhost:4000/transactions' -d '{"to" : "satoshi", "amount": 70 }'
