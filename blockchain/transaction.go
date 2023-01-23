@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"errors"
 	"time"
 
 	"github.com/kimhongji/nomadcoin/utils"
@@ -29,8 +28,9 @@ func (t *Tx) getId() {
 }
 
 type TxIn struct {
-	Owner  string `json:"owner"`
-	Amount int    `json:"amount"`
+	TxId  string `json:"txId"`  // input 으로 사용할 output 의 tx id
+	Index int    `json:"index"` // 위 tx 의 output 들 중에서 어떤 txOut 인지 index
+	Owner string `json:"owner"`
 }
 
 type TxOut struct {
@@ -38,9 +38,16 @@ type TxOut struct {
 	Amount int    `json:"amount"`
 }
 
+// UTxOut 어떤 output 이 쓰였는지 , 안쓰였는지 확인할 수 있게 도와주는 구조체
+type UTxOut struct {
+	TxId   string
+	Index  int
+	Amount int
+}
+
 func makeCoinbaseTx(address string) *Tx {
 	txIns := []*TxIn{
-		{"COINBASE", minerReward},
+		{"", -1, "COINBASE"},
 	}
 	// 원래는 인풋 들어가면 아웃풋 같은거 자동으로 뭔가 처리 되어야 함 처음이라 이런 구조
 	txOuts := []*TxOut{
@@ -60,37 +67,7 @@ func makeCoinbaseTx(address string) *Tx {
 // amount: 3
 // txOutput: [3(to), 1(me)]
 func makeTx(from, to string, amount int) (*Tx, error) {
-	if Blockchain().BalanceByAddress(from) < amount {
-		return nil, errors.New("not enough money")
-	}
-
-	var txIns []*TxIn
-	var txOuts []*TxOut
-	total := 0
-	oldTxOuts := Blockchain().TxOutsByAddress(from)
-	for _, txOut := range oldTxOuts {
-		if total >= amount {
-			break
-		}
-		txIn := &TxIn{Owner: txOut.Owner, Amount: txOut.Amount}
-		txIns = append(txIns, txIn)
-		total += txOut.Amount
-	}
-
-	if total > amount {
-		txOut := &TxOut{Owner: from, Amount: total - amount}
-		txOuts = append(txOuts, txOut)
-	}
-	txOuts = append(txOuts, &TxOut{Owner: to, Amount: amount})
-
-	tx := &Tx{
-		Id:        "",
-		Timestamp: int(time.Now().Unix()),
-		TxIns:     txIns,
-		TxOuts:    txOuts,
-	}
-	tx.getId()
-	return tx, nil
+	// output 들 중에쓸수 있는거 찾기
 }
 
 func (m *mempool) AddTx(to string, amount int) error {

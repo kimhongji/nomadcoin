@@ -16,8 +16,8 @@ const (
 )
 
 type blockchain struct {
-	NewestHash string `json:"newestHash"`
-	Height     int    `json:"height"`
+	NewestHash        string `json:"newestHash"`
+	Height            int    `json:"height"`
 	CurrentDifficulty int    `json:"currentDifficulty"`
 }
 
@@ -33,7 +33,7 @@ func (b *blockchain) persist() {
 }
 
 func (b *blockchain) AddBlock() {
-	block := createBlock(b.NewestHash, b.Height + 1)
+	block := createBlock(b.NewestHash, b.Height+1)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	b.CurrentDifficulty = block.Difficulty
@@ -82,29 +82,47 @@ func (b *blockchain) difficulty() int {
 	}
 }
 
-func (b *blockchain) txOuts() []*TxOut {
-	var txOuts []*TxOut
-	blocks := b.Blocks()
-	for _, block := range blocks {
-		for _, tx := range block.Transactions {
-			txOuts = append(txOuts, tx.TxOuts...)
-		}
-	}
-	return txOuts
-}
+//func (b *blockchain) txOuts() []*TxOut {
+//	var txOuts []*TxOut
+//	blocks := b.Blocks()
+//	for _, block := range blocks {
+//		for _, tx := range block.Transactions {
+//			txOuts = append(txOuts, tx.TxOuts...)
+//		}
+//	}
+//	return txOuts
+//}
 
-func (b *blockchain) TxOutsByAddress(address string) []*TxOut {
-	var newTxOuts []*TxOut
-	for _, txOut := range b.txOuts() {
-		if txOut.Owner == address {
-			newTxOuts = append(newTxOuts, txOut)
+func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
+	var uTxOuts []*UTxOut
+	creatorTxs := make(map[string]bool)
+
+	for _, block := range b.Blocks() {
+		for _, tx := range block.Transactions {
+			for _, input := range tx.TxIns {
+				if input.Owner == address {
+					creatorTxs[input.TxId] = true // id 만 true 로 해도 괜찮나..?
+				}
+			}
+			for index, output := range tx.TxOuts {
+				if output.Owner == address {
+					if _, ok := creatorTxs[tx.Id]; !ok {
+						uTxOuts = append(uTxOuts, &UTxOut{
+							TxId:   tx.Id,
+							Index:  index,
+							Amount: output.Amount,
+						})
+					}
+				}
+			}
 		}
 	}
-	return newTxOuts
+
+	return uTxOuts
 }
 
 func (b *blockchain) BalanceByAddress(address string) int {
-	txOuts := b.TxOutsByAddress(address)
+	txOuts := b.UTxOutsByAddress(address)
 	amount := 0
 	for _, txOut := range txOuts {
 		amount += txOut.Amount
