@@ -101,7 +101,7 @@ func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
 		for _, tx := range block.Transactions {
 			for _, input := range tx.TxIns {
 				if input.Owner == address {
-					creatorTxs[input.TxId] = true // id 만 true 로 해도 괜찮나..?
+					creatorTxs[input.TxId] = true // 하나의 tx 의 txOut 들 중에서는 address 가 겹칠수 없기 때문에 tx 를 기준으로만 사용되었는지 확인
 				}
 			}
 			for index, output := range tx.TxOuts {
