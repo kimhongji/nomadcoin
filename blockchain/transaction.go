@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"errors"
 	"time"
 
 	"github.com/kimhongji/nomadcoin/utils"
@@ -67,7 +68,32 @@ func makeCoinbaseTx(address string) *Tx {
 // amount: 3
 // txOutput: [3(to), 1(me)]
 func makeTx(from, to string, amount int) (*Tx, error) {
-	// output 들 중에쓸수 있는거 찾기
+	if Blockchain().BalanceByAddress(from) < amount {
+		return nil, errors.New("not enough money")
+	}
+	var txOuts []*TxOut
+	var txIns []*TxIn
+	total := 0
+	uTxOuts := Blockchain().UTxOutsByAddress(from)
+	for _, uTxOut := range uTxOuts {
+		if total >= amount {
+			break
+		}
+		txIns = append(txIns, &TxIn{uTxOut.TxId, uTxOut.Index, from})
+		total += uTxOut.Amount
+	}
+
+	if change := total - amount; change != 0 {
+		txOuts = append(txOuts, &TxOut{from, change})
+	}
+	txOuts = append(txOuts, &TxOut{to, amount})
+	tx := &Tx{
+		Timestamp: int(time.Now().Unix()),
+		TxIns:     txIns,
+		TxOuts:    txOuts,
+	}
+	tx.getId()
+	return tx, nil
 }
 
 func (m *mempool) AddTx(to string, amount int) error {
