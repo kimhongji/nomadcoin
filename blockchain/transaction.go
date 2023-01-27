@@ -46,6 +46,19 @@ type UTxOut struct {
 	Amount int
 }
 
+func isOnMempool(uTxOut *UTxOut) bool {
+	for _, tx := range Mempool.Txs {
+		for _, txIn := range tx.TxIns {
+			if txIn.TxId == uTxOut.TxId {
+				if txIn.Index == uTxOut.Index {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func makeCoinbaseTx(address string) *Tx {
 	txIns := []*TxIn{
 		{"", -1, "COINBASE"},
