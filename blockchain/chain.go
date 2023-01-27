@@ -33,7 +33,7 @@ func (b *blockchain) persist() {
 }
 
 func (b *blockchain) AddBlock() {
-	block := createBlock(b.NewestHash, b.Height+1)
+	block := createBlock(b.NewestHash, b.Height+1, b.difficulty())
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	b.CurrentDifficulty = block.Difficulty
@@ -135,19 +135,17 @@ func (b *blockchain) BalanceByAddress(address string) int {
 
 //singleton
 func Blockchain() *blockchain {
-	if b == nil {
-		once.Do(func() {
-			b = &blockchain{
-				NewestHash: "",
-				Height:     0,
-			}
-			checkpoint := db.Checkpoint()
-			if checkpoint == nil {
-				b.AddBlock()
-			} else {
-				b.restore(checkpoint)
-			}
-		})
-	}
+	once.Do(func() {
+		b = &blockchain{
+			NewestHash: "",
+			Height:     0,
+		}
+		checkpoint := db.Checkpoint()
+		if checkpoint == nil {
+			b.AddBlock()
+		} else {
+			b.restore(checkpoint)
+		}
+	})
 	return b
 }
