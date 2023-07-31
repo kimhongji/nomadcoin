@@ -1,2 +1,2 @@
 # nomadcoin
-block chain first project
+block chain project
